@@ -9,9 +9,7 @@
 
 (def postläsare (insta/parser (io/file "posterv3-working.bnf")))
 
-
-
-(def alla (postläsare (slurp "../allaplatser1.txt")))
+(def alla (postläsare (slurp "allaplatser-with-v3.txt")))
 
 (count alla)
 ;; 1722

@@ -1,0 +1,66 @@
+<poster> = post*
+post =
+löpnummer
+län
+kommun
+socken
+föreningensnamn
+föreningensinstiftelseår
+objekt
+formavägande
+intressenter
+fastighetsbeteckning
+adress
+arkitekt                    
+byggmästare                 
+nybyggnadsår                
+miljö                       
+renoveringombyggnad         
+byggnaderfunktioner         
+verksamhetidag              
+tidigarefunktion            
+litteratur                  
+arkivhandlingar             
+källa                       
+anmärkning                  
+
+<fritext> = (<" ">? #".*"? <"\n">)
+
+löpnummer = <"Löpnummer"> <" ">? #"\d+" <"\n"> 
+
+län = <"Län"> (<" "> #".+")? <"\n">          
+
+kommun = <"Kommun"> (<" "> #".+")? <"\n">
+
+socken = <"Socken"> fritext
+föreningensnamn = <"Föreningens namn"> fritext
+föreningensinstiftelseår = <"Föreningens instiftelseår"> <" ">? #".*" <"\n">
+objekt = <"Objekt"> (<" ">? #".+")? <"\n">
+formavägande = <"Form av ägande"> <" ">? #".*" <"\n">
+intressenterrad = (!fastighetsbeteckning <" ">? #".*" <"\n">)
+intressenter = <"Intressenter"> intressenterrad*
+
+fastighetsbeteckning = <"Fastighetsbeteckning"> (<" "> #".+")? <"\n">
+adress = <"Adress"> (<" "> #".+")? <"\n">
+arkitekt = <"Arkitekt"> (<" "> #".+")? <"\n">
+byggmästare = <"Byggmästare"> (<" "> #".+")? <"\n">
+nybyggnadsår = <"Nybyggnadsår"> (<" "> <#".+">)? <"\n">
+miljö = <"Miljö"> (<" "> #".*")? <"\n">
+rorad = (!byggnaderfunktioner (<" ">? #".*")? <"\n">)
+renoveringombyggnad = <"Renovering, ombyggnad"> rorad*
+byggnaderfunktionerrad = (!verksamhetidag <" ">? #".*" <"\n">)
+byggnaderfunktioner = <"Byggnader, funktioner"> byggnaderfunktionerrad*
+verksamhetidagrad = (!tidigarefunktion <" ">? #".*" <"\n">)
+verksamhetidag = <"Verksamhet idag"> verksamhetidagrad*
+tidigarefunktionrad = (!litteratur <" ">? #".*" <"\n">)
+tidigarefunktion = <"Tidigare funktion"> tidigarefunktionrad*
+littrad = (!arkivhandlingar <" ">? #".*" <"\n">)
+litteratur = <"Litteratur"> littrad*
+arkivrad =  (!källa <" ">? #".*" <"\n">)
+arkivtoken = <"Arkivhandlingar\nArkivhandlingar\n">
+arkivhandlingar = arkivtoken arkivrad*
+källarad = (!anmärkning <" ">? #".*" <"\n">)
+källa = <"Källa"> källarad*
+anmärkningtoken = <"Anmärkning">
+anmärkningrad = (!löpnummer <" ">? #".*" <"\n">)
+anmärkning = (anmärkningtoken anmärkningrad*)

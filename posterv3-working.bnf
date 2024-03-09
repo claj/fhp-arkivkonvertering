@@ -24,43 +24,41 @@ arkivhandlingar
 källa                       
 anmärkning                  
 
-<fritext> = (<" ">? #".*"? <"\n">)
+<fritext> = ((<" ">? #".+"? <"\n">) | <"\n">)
+
+<enrad>  =  ((<" ">  #".+"? <"\n">) | <"\n">)
 
 löpnummer = <"Löpnummer"> <" ">? #"\d+" <"\n"> 
-
-län = <"Län"> (<" "> #".+")? <"\n">          
-
-kommun = <"Kommun"> (<" "> #".+")? <"\n">
-
-socken = <"Socken"> fritext
-föreningensnamn = <"Föreningens namn"> fritext
-föreningensinstiftelseår = <"Föreningens instiftelseår"> <" ">? #".*" <"\n">
-objekt = <"Objekt"> (<" ">? #".+")? <"\n">
-formavägande = <"Form av ägande"> <" ">? #".*" <"\n">
-intressenterrad = (!fastighetsbeteckning <" ">? #".*" <"\n">)
+län = <"Län"> enrad
+kommun = <"Kommun"> enrad
+socken = <"Socken"> enrad
+föreningensnamn = <"Föreningens namn"> enrad
+föreningensinstiftelseår = <"Föreningens instiftelseår"> enrad
+objekt = <"Objekt"> enrad
+formavägande = <"Form av ägande"> enrad
+<intressenterrad> = (!fastighetsbeteckning fritext)
 intressenter = <"Intressenter"> intressenterrad*
-
-fastighetsbeteckning = <"Fastighetsbeteckning"> (<" "> #".+")? <"\n">
-adress = <"Adress"> (<" "> #".+")? <"\n">
-arkitekt = <"Arkitekt"> (<" "> #".+")? <"\n">
-byggmästare = <"Byggmästare"> (<" "> #".+")? <"\n">
-nybyggnadsår = <"Nybyggnadsår"> (<" "> <#".+">)? <"\n">
-miljö = <"Miljö"> (<" "> #".*")? <"\n">
-rorad = (!byggnaderfunktioner (<" ">? #".*")? <"\n">)
-renoveringombyggnad = <"Renovering, ombyggnad"> rorad*
-byggnaderfunktionerrad = (!verksamhetidag <" ">? #".*" <"\n">)
-byggnaderfunktioner = <"Byggnader, funktioner"> byggnaderfunktionerrad*
-verksamhetidagrad = (!tidigarefunktion <" ">? #".*" <"\n">)
-verksamhetidag = <"Verksamhet idag"> verksamhetidagrad*
-tidigarefunktionrad = (!litteratur <" ">? #".*" <"\n">)
-tidigarefunktion = <"Tidigare funktion"> tidigarefunktionrad*
-littrad = (!arkivhandlingar <" ">? #".*" <"\n">)
-litteratur = <"Litteratur"> littrad*
-arkivrad =  (!källa <" ">? #".*" <"\n">)
+fastighetsbeteckning = <"Fastighetsbeteckning"> enrad
+adress = <"Adress"> enrad
+arkitekt = <"Arkitekt"> enrad
+byggmästare = <"Byggmästare"> enrad
+nybyggnadsår = <"Nybyggnadsår"> enrad
+miljö = <"Miljö"> enrad
+<rorad> = (!byggnaderfunktioner fritext)
+renoveringombyggnad = <"Renovering, ombyggnad"> enrad rorad*
+<byggnaderfunktionerrad> = (!verksamhetidag fritext)
+byggnaderfunktioner = <"Byggnader, funktioner"> enrad byggnaderfunktionerrad*
+<verksamhetidagrad> = (!tidigarefunktion fritext)
+verksamhetidag = <"Verksamhet idag"> enrad verksamhetidagrad*
+<tidigarefunktionrad> = (!litteratur fritext)
+tidigarefunktion = <"Tidigare funktion"> enrad tidigarefunktionrad*
+<littrad> = (!arkivhandlingar fritext)
+litteratur = <"Litteratur"> enrad littrad*
+<arkivrad> =  (!källa fritext)
 arkivtoken = <"Arkivhandlingar\nArkivhandlingar\n">
-arkivhandlingar = arkivtoken arkivrad*
-källarad = (!anmärkning <" ">? #".*" <"\n">)
-källa = <"Källa"> källarad*
+arkivhandlingar = <arkivtoken> arkivrad*
+<källarad> = (!anmärkning fritext)
+källa = <"Källa"> enrad källarad*
 anmärkningtoken = <"Anmärkning">
-anmärkningrad = (!löpnummer <" ">? #".*" <"\n">)
-anmärkning = (anmärkningtoken anmärkningrad*)
+<anmärkningrad> = (!löpnummer <" ">? #".*" <"\n">)
+anmärkning = (<anmärkningtoken> enrad anmärkningrad*)

@@ -13,4 +13,5 @@
 
 (def alla (postläsare (slurp "../allaplatser1.txt")))
 
-(first alla)
+(count alla)
+;; 1722

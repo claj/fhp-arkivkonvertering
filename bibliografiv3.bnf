@@ -1,0 +1,42 @@
+(* parsar bibliografiexporten *)
+<poster> = post*
+post =
+författare
+titel
+ortförlag
+utgivningsår
+omfång
+medförfattare
+medarbetare
+utgivare
+serie
+isbn
+anmärkning
+klassificering
+placeringarab
+
+<fritext> = ((<" ">? #".+"? <"\n">) | <"\n">)
+<enrad>  =  ((<" ">  #".+"? <"\n">) | <"\n">)
+
+författare = <"Författare"> enrad
+<titelrad> = (!ortförlag fritext)
+titel = <"Titel"> enrad titelrad*
+<ortförlagrad> = (!utgivningsår fritext)
+ortförlag = <"Ort Förlag"> enrad ortförlagrad*
+utgivningsår = <"Utgivningsår"> enrad
+omfång = <"Omfång"> enrad
+<medförfattarerad> = (!medarbetare fritext)
+medförfattare = <"Medförfattare"> enrad medförfattarerad*
+<medarbetarerad> = (!utgivare fritext)
+medarbetare = <"Medarbetare"> enrad medarbetarerad*
+<utgivarerad> = (!serie fritext)
+utgivare = <"Utgivare"> enrad utgivarerad*
+<serierad> = (!isbn fritext)
+serie = <"Serie"> enrad serierad*
+isbn = <"ISBN"> fritext
+<anmärkningrad> = (!klassificering fritext)
+anmärkning = <"Anmärkning"> enrad anmärkningrad*
+<klassificeringrad> = (!placeringarab fritext)
+klassificering = <"Klassificering"> enrad klassificeringrad*
+<placeringarabrad> = (!författare fritext)
+placeringarab = <"Placering ARAB"> enrad placeringarabrad*

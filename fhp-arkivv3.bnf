@@ -1,0 +1,24 @@
+(* parsar FHP-arkiv *)
+<poster> = post*
+post =
+objekt
+omfång
+tid
+institution
+typavhandlingar
+anmärkning
+
+<fritext> = ((<" ">? #".+"? <"\n">) | <"\n">)
+<enrad>  =  ((<" ">  #".+"? <"\n">) | <"\n">)
+<objektrad> = (!omfång fritext)
+objekt = <"Objekt"> enrad objektrad*
+<omfångrad> = (!tid fritext)
+omfång = <"Omfång"> enrad omfångrad*
+<tidrad> = (!institution fritext)
+tid = <"Tid"> enrad tidrad*
+<institutionrad> = (!typavhandlingar fritext)
+institution = <"Institution"> enrad institutionrad*
+<typavhandlingarrad> = (!anmärkning fritext)
+typavhandlingar = <"Typ av handlingar"> enrad typavhandlingarrad*
+<anmärkningrad> = (!objekt fritext)
+anmärkning = <"Anmärkning"> enrad anmärkningrad*

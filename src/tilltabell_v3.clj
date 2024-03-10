@@ -1,12 +1,10 @@
 (ns tilltabell-v3
-  "Det ser ut som att den nya exporten är betydligt bättre
-  \"Arkivhandlingar\" förekommer två gånger, men det är ett lösbart problem.
-"
+  "skript för att importera rå-texter och med specificerad abnf-syntax
+  konvertera dem först till en vektor-datastruktur som skrivs som EDN-fil, sedan exportera som CSV"
   (:require [clojure.java.io :as io]
             [clojure.data.csv :as csv]
             [clojure.string :as str]
-            [instaparse.core :as insta]
-            []clojure.data.csv :as csv]))
+            [instaparse.core :as insta]))
 
 (defn post->csv-header
 "extract the tags of all the sub entities"
@@ -30,38 +28,24 @@
 
 (defn posts-to-csv [posts]
   (into [(post->csv-header (first posts))]
+        ;; sorterar (lexikalt) så om löpnummer i början blir detta sorteringen
         (sort (map post->row posts))))
 
-(def postläsare (insta/parser (io/file "posterv3-working.bnf")))
+(comment
+  (def platsläsare (insta/parser (io/file "posterv3-working.bnf")))
+  (def alla-platser (platsläsare (slurp "allaplatser-with-v3.txt")))
+
+  (assert (= 1722   (count alla-platser)) "läsning av platsfilen ska resultera i 1722 poster.")
+
+  (spit "allaplatser-parse1.edn" (pr-str (vec alla-platser)))
+  (with-open [writer (io/writer "allaplatser-parse1.csv")]
+    (csv/write-csv writer
+                   (posts-to-csv alla-platser))))
 
 (comment
-  
-  (def alla (postläsare (slurp "allaplatser-with-v3.txt")))
-
-  (assert (= 1722   (count alla)))
-
-  (spit "allaplatser-parse1.edn" (pr-str (vec alla)))
-(with-open [writer (io/writer "allaplatser-parse1.csv")]
-  (csv/write-csv writer
-                 (posts-to-csv alla))))
-
-(comment 
-)
-(comment (post->csv-header (first alla)))
-
-
-
-
-
-
-;;(post->row (first alla))
-
-
-
-(def csv-data (posts-to-csv alla))
-(comment 
-(take 3 csv-data)
-(take 2 alla))
+  ;; för att populera dokumentation tex
+  (take 3 (posts-to-csv alla-platser))
+(take 2 alla-platser))
 
 (comment
 
@@ -80,7 +64,16 @@
 
 )
 
-(take 3 (map post->row bibliografi))
+(comment "FHP arkivförteckning-export"
 
-(comment with-)
+(def arkivläsare (insta/parser (io/file "fhp-arkivv3.bnf")))
+(def fhp-arkiv (arkivläsare (slurp "fhp-arkiv-1.txt")))
+(spit "fhp-arkiv-1.edn" (pr-str (vec fhp-arkiv)))
 
+(with-open [writer (io/writer "fhp-arkiv-1.csv")]
+  (csv/write-csv writer
+                 (into [(post->csv-header (first bibliografi))]
+                       ;; Arkiv vill vi ha i samma ordning som pdf-en
+                       (map post->row bibliografi))))
+
+)

@@ -1,0 +1,423 @@
+* Reproducible steps
+
+This is an attempt to do reproducible research. This particular data is from a research project creating an inventory of Folkets Hus and Folkets Parker (People's House and People's Park, two quite strong People's movements in Sweden starting some years before 1900).
+
+There where hundreds of houses and parks built all around Sweden, some are now closed or has changed purpose. The research, made between 2000-2005, in the Swedish Labour Movement's Archives and Library left some Filemaker Databases which could no longer be exported in a structured way.
+
+This project takes the PDF outputs supplied by the Archive and re-converts them to structured data using Instaparse as an ABNF-parser, where parser definitions where handcrafted for each raw text conversion of the PDF file.
+
+* What is this data?
+
+The data files are flat (non-relational) filemaker databases of
+
+- Objects (House, Park or some combination) with data from an inquiry and other sources,
+- Archival inventory for these objects where archive documents are stored
+- Bibliograhpy - an inventory of books covering the various objects (for instance aniversary writings or research papers based on one object or objects in a specified region)
+
+Field descriptions is attached below, but in Swedish.
+
+* 1. Source material
+
+three PDF files.
+
+* 2. From PDF -> raw text content
+
+After some trial and error I ended up using pdfbox 3.0.1 https://pdfbox.apache.org/3.0/commandline.html - (INSERT DOWNLOAD LINK to jar)
+
+java -jar pdfbox-app-3.0.1.jar export:text -sort -i=2024-03-06 arab-3218 fhp-objekt.pdf -o=../fhp-objekt-2.txt
+
+note the *-sort*. This makes the text be sorted on layout instead of how the document was created.
+
+java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-arkiv.pdf -o fhp-arkiv-2.txt
+java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-bibliografi.pdf -o fhp-bibliografi-2.txt
+java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-objekt.pdf -o fhp-objekt-2.txt
+
+
+** Failed attempts getting text from PDF
+
+*** clojure wrapper pdfboxing to pdfbox v 2
+
+pdfboxing/pdfboxing {:mvn/version "0.1.15.3-SNAPSHOT"}
+
+Using pdfbox v 2 with a clojure wrapper did not sort the text very well, or I used the wrong options. The file was not possible to parse consistently because Keys and data sometimes was very unordered.
+
+I tried to use the rectangular selection functionality in this library, but it was not clear how to specify the rectangles in the document - the point of reference and the scaling was not documented, and the source code for apache pdfbox was not instructive either.
+
+I did an initial attempt using Mathematica - with the same problem as pdfbox 2.0, maybe I did not set the -sort option, maybe that would have solved the problem initially. However, Mathematica is proprietary product.
+
+* 3. Defining and trying out a ABNF grammar for each file
+
+The Instaparse library is a good one. https://github.com/Engelberg/instaparse
+
+My workflow was to (inline evaulate) the defining of the parser when needed.
+
+I tried to parse a raw-text file and found the first error with REPL evaluation, adapted the parser, and then found the next error until all the file could be correctly parsed.
+
+A lot of effort was put into getting all extra tags not show up, to make the CSV export very simple (all the rows in a post has the same structure, :tag and zero or many strings). A more advanced parsing (which would be helpful) would need a more complex conversion to CSV posts.
+
+* Fältbeskrivningar (Field descriptions in Swedish) 
+
+** Objekt-filen
+
+*** Löpnummer (id)
+Fyrställigt löpnummer tilldelat av Filemaker. Detta är lämpligt att behålla som ett så kallat externt ID för dessa poster.
+*** Län (region)
+Län, och kombinationer av län, dessa har förstås också använts som avgränsningar för centralorganisationerna.
+
+https://sv.wikipedia.org/wiki/Sveriges_l%C3%A4n
+
+Län har förändrats över tid.
+
+Systemet med länsbokstäver finns inte längre, istället finns till exempel systemet med Länskoder.
+
+*** Kommun (municipality)
+Kommunen utan efterledet "kommun". Ibland med frågetecken.
+
+Tidsförändring: kommunindelning har förändrats över tid. Kommuner har framför allt slagits samman.
+
+*** Socken (parish)
+Hur har socknar förändrats över tid?
+
+https://sv.wikipedia.org/wiki/Socken#Kyrksockenindelningens_fortsatta_utveckling_i_Sverige
+
+
+
+*** Föreningens namn
+
+Saknas på vissa poster.
+
+Tidsförändring:  att många hus och parker har ändrat regi över åren. Dessa andra aktörer, även befintliga, finns nog inte alltid med i sammanställningen.
+
+Här har i vissa fall förmodligen ett urval gjorts. Det finns tex fall där föreningar lagts ned, för att sedan startas om. Det förekommer förmodligen att byggnaden ägs av ett AB som styrs av föreningen. Det förekommer också historiskt att tydligt olika föreningar/rörelser stått för driften av ett hus eller en lokal. Här
+
+Definitioner: upa - utan personligt ansvar.
+
+Här har förstås ett urval gjorts. Det är tänkbart att forskarna valt att framför allt behålla föreningar av typen Byggförening, Folkets Hus-förening, Folkets park-förening, eller föreningar som på annat sätt kunnat knytas till arbetarrörelsen (framför till exempel nykterhetsrörelse-föreningar eller församlingar)
+
+*** Föreningens instiftelseår
+
+Måste förstås som kopplat till angiven Förening.
+
+*** Objekt
+
+Namnet på verksamheten, ibland kanske flera namn.
+
+*** Form av ägande
+
+ekonomisk förening
+ekonomisk förening upa
+ideell förening
+stiftelse
+kommun
+
+*** Intressenter
+En lista på olika rörelser inblandade i huset.
+kan förekomma över flera rader?
+
+exempel:
+kommun
+fackförening, arbetarekommun, s-förening, enskilda
+
+(två rader:)
+fackförening, arbetarekommun, s-förening, SSU-klubb, enskilda,
+kommun, företag
+
+nykterhetsloge
+
+fackföreningar, arbetarekommun
+
+*** Fastighetsbeteckning
+
+Statsäga 96
+Transjö 1:5, samt samfälld mark till Transjö 1:2, 1:3, 1:4, 1:5
+Bjällernäs 1-102
+
+*** Adress
+Postadress, ofta en gata, ibland även ort.
+
+Bruksgatan 54, Klavreström
+
+Parkgatan
+Kanalgatan 94, Kristianstad
+Linnégatan, Kvidinge
+Linnégatan 61
+Olof Palmes plats 1
+Folkparksvägen
+Paradisvägen 43, Åhus
+
+*** Arkitekt
+
+Exempel:
+Brügger (dansrotunda 1964)
+
+*** Byggmästare
+
+Exempel:
+
+Emo (dansrotunda 1964)
+Bengt Eriksson Bel. och Bygg
+Wilhelm Sandell
+
+*** Nybyggnadsår
+
+1955-1956
+FP 1909, FH 1936
+1923
+
+*** Miljö
+
+kort beskrivning av miljön på platsen för huset eller parken. Tycks vara på noggrannt angiven form.
+
+Miljö utanför tätort
+
+Miljö tätort
+
+Miljö inne i tätortsbebyggelse
+
+Miljö i anslutning till tätortsbebyggelse
+
+Miljö utanför tätortsbebyggelse
+
+Miljö i anslutning till tätortsbebyggelse
+
+*** Renovering, ombyggnad
+
+Om- och tillbyggt 1961-1962
+
+Tillbyggt i mitten av 1970-talet. Om- och tillbyggt 1993.
+
+Exempel med radbrytning:
+
+Byggnader, funktioner scen, biograf, kök, studielokal, föreningsexpedition
+dansbana 1985
+
+Renovering, ombyggnad 1926 byggdes B- och C-salen samt kök och värmeledning. 1940
+biografen.
+
+*** Byggnader, funktioner
+
+exempel:
+
+dansbana, byggnader för tombola, chokladhjul, konditori
+
+exempel:
+
+biograf
+
+*** Verksamhet idag
+Exempel:
+
+Rivet
+
+Verksamheten nedlagd, men föreningen finns kvar.
+
+dans
+
+*** Tidigare funktion
+
+*** Litteratur
+
+exempel 1
+
+Litteratur Norrhults Folkets Hus och Park: Jubileumsskrift 1908-1948, 1948
+Gustafssson, Hans: I samhällets och folkrörelsernas tjänst 1937-1962,
+Åseda 1962
+Liebel, Alfons: Byggnadsföreningen Folkets Hus, Norrhult, 1980
+
+exempel 2:
+
+Litteratur En 50-årig verksamhet 1923-1973. Sävsjöström Byggnadsförening
+ARAB: Folkets husföreningar vol. 3 [samling]
+Hus för nöje och bildning, Folkets hus Folkets park Ordenshus 1999
+
+exempel 3:
+
+Litteratur Carlsson, Uno: Vårt Folkets Hus, 1977
+Hus för nöje och bildning, Folkets hus Folkets park Ordenshus 1999
+
+exempel 4:
+
+Litteratur Hus för nöje och bildning, Folkets hus Folkets park Ordenshus 1999
+
+
+*** Arkivhandlingar
+
+Förekommer dubbelt på grund av radbrytning i PDF:en
+
+Arkivhandlingar
+Arkivhandlingar
+I lokalen samt
+Kronobergsarkivet; Älmhults Folkets husförening: Fragment 1946-1958
+Se Stockholms företagsminnen: Konsumtionsföreningen Älmhult med
+omnejd
+
+Arkivhandlingar
+Arkivhandlingar
+i lokalen 1991-
+protokoll, räkenskaper, verksamhetsberättelser, inventarieförteckningar,
+ritningar, fotografier
+
+Arkivhandlingar
+Arkivhandlingar
+Ljungby kommuns centralarkiv 52 vol. 1922-1973 och Kronobergsarkivet
+
+Arkivhandlingar
+Arkivhandlingar
+
+Arkivhandlingar
+Arkivhandlingar
+ARAB: Folkets husföreningar vol 1 [samling]
+
+Arkivhandlingar
+Arkivhandlingar
+NM inventering 1958 fotografier, Kronobergsarkivet
+
+
+*** Källa
+SF
+SF, ARAB
+LS, FHP-enkät, SF, FA, Social-Demokraten 5 nov 1936
+SF, NM, NAD, FA
+SF, FPC
+SF, NM, FA
+
+*** Anmärkning
+Anmärkning Parken ligger på arrenderad mark.
+Dansbanan låg tidigare ca 500 m från nuvarande plats, i annan socken,
+men har flyttats.
+
+Anmärkning Inköptes 1922. Såldes till kommunen 1975
+
+Anmärkning Föreningen byggde nytt FH 1931.
+
+Anmärkning Inköptes 1916. Brann ned 1923.
+
+Anmärkning 1955 inköptes en utrangerad skolbyggnad 
+
+Anmärkning pionjärerna var stenarbetare
+
+** Bibliografi
+
+Detta register har ingen numrerad primärnyckel, troligtvis är "Objekt" den nyckel som används för att referera till anläggning och arkiv.
+
+
+- författare - efternamn, förnamn initial
+- Titel (flera rader)
+- Ortförlag - ofta  ort : förlag, ibland listningar
+- Utgivningsår - årtal, ibland från år - till år, ibland listningar
+- Omfång - sidanantal, anger om illustrerad
+- *OBS - i det exporterade datat ser det ut som att följande 3-4 poster kan komma på fel nycklar, kontrollera mot ursprungs-PDFen!*
+- Medförfattare - lista på medförfattare, ibland var dessa är verksamma
+- Medarbetare - person (på) organisationen
+- Utgivare - ofta organisation
+- Serie - arkivserie
+- ISBN - ISBNnummer om tillgängligt. En rad
+- Anmärkning - flera rader
+- Klassificering - Enligt bibliotekens system. Kan vara flera poster, exempel "Ohma-cz Avesta Ohmb-cz Avesta"
+- Placeringarab: Br/27269 (placering på Arbetarrörelsens arkiv och bibliotek)
+
+*** Exempel ur råtexten (nyckeln Författare utgör inledning av posten):
+
+Författare
+Titel Folkets Hus / organ för Folkets Husföreningarnas Riksorganisation
+Ort Förlag Stockholm FHR
+Utgivningsår 1969-
+Omfång
+Medförfattare
+Medarbetare
+Utgivare Folkets husföreningarnas riksorganisation
+Serie
+ISBN
+Anmärkning Tidskrift. Fortsätter: Våra folkets hus
+Klassificering Ohma-c
+Placering ARAB C07/15
+Författare
+Titel Våra Folkets Hus / organ för Folkets Husföreningarnas
+Riksorganisation
+Ort Förlag Stockholm : Riksorg.
+Utgivningsår 1960-1969
+Omfång
+Medförfattare
+Medarbetare
+Utgivare Folkets husföreningarnas riksorganisation
+Serie
+ISBN
+Anmärkning Tidskrift. Fortsättes av Folkets hus
+Klassificering Ohma-c
+Placering ARAB C07/13
+Författare Palme, Olof
+Titel “Folkets Hus och folkrörelserna tillhör framtiden” : Olof Palme och våra
+Folkets hus : utdrag ur tal av Olof Palme om våra Folkets Hus och
+folkrörelsehusen samt människornas idéer och drömmar om att
+förändra samhället / korta kommentarer, sammanställning och
+redigering av Erik Södersten.
+Ort Förlag Stockholm : Folkets Husföreningarnas Riksorganisation
+Utgivningsår 1988
+Omfång 63 s. : ill.
+Medförfattare
+Medarbetare Södersten, Erik
+Folkets Husföreningarnas Riksorganisation
+Utgivare
+Serie
+ISBN 91-7970-251-1
+Anmärkning
+Klassificering Ohma-c
+Placering ARAB Br67/3909, Br 67/3910
+Författare Bergkvist, Sven O.
+Titel Vägar till Folkets Hus
+Ort Förlag Stockholm : Folkets Husföreningarnas Riksorganisation
+Utgivningsår 1982
+Omfång 224 s. : ill.
+Medförfattare
+Medarbetare
+Utgivare Folkets husföreningarnas riksorganisation
+Serie
+ISBN 91-7260-694-0
+Anmärkning
+Klassificering Ohma-c
+Placering ARAB 67/10551
+…
+
+** Arkiven
+I forskningsprojektet finns också en omfattande förteckning över vilka Objekt som har sina arkiv var. Nyckeln Objekt utgör inledning av post.
+
+
+Objekt Folkets husföreningarnas riksorganisation, FHR
+Omfång c:a 460 volymer förtecknade handlingar samt diverse oförtecknade
+Tid
+Institution Arbetarrörelsens arkiv och bibliotek, Stockholm 
+Typ av handlingar protokoll, verksamhetsberättelser, korrespondens, ämnesordnade
+handlingar, räkenskaper, ritningar m m
+Anmärkning Tillstånd. Arkiv nr 2926 under arbete.
+C:a 400 vol förtecknade handlingar (acc 1975/55) RA 18/01-20/22
+ c;a 40   vol räkenskapshandlingar (acc 1975/55) RB 34/13-16
+1 vol från Gamla samlingen plac Ua 26/41
+19 vol acc 1969/1 Ua 22/16-17
+4 (7?) lådor RB 02/09-12
+52 ? lådor  (1986/40) RB 11/04-16
+31 lådor  (acc 1988/?) RD 78/01-10
+Objekt Folkets husföreningen, Ursvik
+Omfång 1 vol.
+Tid 1970-tal - 1980-tal
+Institution Arbetarrörelsens arkiv och bibliotek, Stockholm
+Typ av handlingar kallelser
+Anmärkning ARAB arkiv nr 2936 plac: 22/20
+Objekt Föreningen Folkets husfonden för Stockholm med omnejd u p a
+Omfång 10 vol. samt 9 lådor
+Tid 1926-1971?
+Institution Arbetarrörelsens arkiv och bibliotek, Stockholm
+Typ av handlingar protokoll, räkenskaper m m 
+Anmärkning ARAB arkiv nr 2927 plac: 22/17, 26/39, RD 27/06, RB 11/07-08 samt
+Gr 3
+
+Många av fälten är listningar. Pga sagda begräsningar med radbrytningar är det i nuvarande skick onödigt svårt att skilja datat åt. Det skulle vara bra att tydliggöra radbrytningen med något specialteckning i åtminstone en del av fälten.
+
+Se csv-filen för kompletta data.
+
+- Objekt - kanske matchar som i platsarkivet
+- Omfång - semistrukturerat data
+- Tid - semistrukturerat på ett fåtal olika sätt
+- Institution -
+- Typ av handlingar - 
+- Anmärkning -
+

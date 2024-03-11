@@ -29,8 +29,12 @@ java -jar pdfbox-app-3.0.1.jar export:text -sort -i=2024-03-06 arab-3218 fhp-obj
 note the *-sort*. This makes the text be sorted on layout instead of how the document was created.
 
 java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-arkiv.pdf -o fhp-arkiv-2.txt
+
 java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-bibliografi.pdf -o fhp-bibliografi-2.txt
+
 java -jar pdfbox/pdfbox-app-3.0.1.jar export:text -sort -i=source-pdfs/2024-03-06_arab-3218-c-1_fhp-objekt.pdf -o fhp-objekt-2.txt
+
+(Steps to reproduce: bytewise comparisition with commited *-raw.txt)
 
 
 ** Failed attempts getting text from PDF
@@ -49,11 +53,13 @@ I did an initial attempt using Mathematica - with the same problem as pdfbox 2.0
 
 The Instaparse library is a good one. https://github.com/Engelberg/instaparse
 
-My workflow was to (inline evaulate) the defining of the parser when needed.
+My workflow was to inline evaulate the defining of the parser when needed.
 
-I tried to parse a raw-text file and found the first error with REPL evaluation, adapted the parser, and then found the next error until all the file could be correctly parsed.
+I tried to parse the corresponding raw-text file and found the first error with REPL evaluation, adapted the parser, and then found the next error until all the file could be correctly parsed.
 
 A lot of effort was put into getting all extra tags not show up, to make the CSV export very simple (all the rows in a post has the same structure, :tag and zero or many strings). A more advanced parsing (which would be helpful) would need a more complex conversion to CSV posts.
+
+The syntax is not super elegant, but works. For many row-answers, the parser has to make a negative look-ahead using ! for the next Token-key.
 
 * Fältbeskrivningar (Field descriptions in Swedish) 
 
@@ -79,8 +85,6 @@ Tidsförändring: kommunindelning har förändrats över tid. Kommuner har framf
 Hur har socknar förändrats över tid?
 
 https://sv.wikipedia.org/wiki/Socken#Kyrksockenindelningens_fortsatta_utveckling_i_Sverige
-
-
 
 *** Föreningens namn
 
